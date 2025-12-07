@@ -1,20 +1,26 @@
 
 #include "../../includes/minishell.h"
 
-void exec_echo(t_command *cmd, t_exit exit)
+int builtin_echo(char **args)
 {
-    int i;
-
-    if (valid_commmand() && cmd->arg[1])
+    int i = 1;
+    int newline = 1;
+    
+    if (args[1] && !ft_strcmp(args[1], "-n"))
     {
-        printf("%s",cmd->arg[1]);
-        exit.id = 0;
+        newline = 0;
+        i = 2;
     }
-    else if (valid_commmand())
-        
-        return 0
+    
+    while (args[i])
+    {
+        printf("%s", args[i]);
+        if (args[i + 1])
+            printf(" ");
+        i++;
+    }
+    if (newline)
+        printf("\\n");
+    return (0);
 }
 
-
-
-static int valid_commmand()
