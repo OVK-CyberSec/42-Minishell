@@ -12,3 +12,5 @@ bool	is_builtin(char *cmd)
 	return (false);
 }
 
+
+int	exec_cmd()

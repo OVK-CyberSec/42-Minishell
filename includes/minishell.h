@@ -20,29 +20,35 @@ extern char **environ;
 # define APPEND		4	//">>"
 # define PIPE		5	//"|"
 
-typedef enum e_tokens
-{
-    cd,
-    echo,
-    env,
-    export,
-    unset,
-    exit
-}   t_tokens;
 
-typedef struct s_command
-{
-    int nbr;
-    char **arg;
-    bool flag;
-    char *tokens;
-    int nbr_tokens;
-    bool is_valid;
-}   t_command;
+typedef enum e_token_type {
+    TOKEN_WORD,
+    TOKEN_PIPE,
+    TOKEN_REDIR_IN,
+    TOKEN_REDIR_OUT,
+    TOKEN_REDIR_APPEND,
+    TOKEN_HEREDOC,
+    TOKEN_ENV_VAR
+} t_token_type;
 
-typedef struct s_exit
-{
-    int id;
-}   t_exit;
+typedef struct s_token {
+    t_token_type    type;
+    char            *value;
+    struct s_token  *next;
+} t_token;
+
+
+typedef struct s_cmd {
+    char **args;           // Tableau d'arguments
+    char *input_file;      // Fichier de redirection 
+    char *output_file;     // Fichier de redirection >
+    int append;            // Mode append pour >>
+    char *heredoc_delim;   // Délimiteur pour 
+} t_cmd;
+
+typedef struct s_pipeline {
+    t_cmd **commands;      // Tableau de commandes
+    int cmd_count;         // Nombre de commandes
+} t_pipeline;
 
 #endif

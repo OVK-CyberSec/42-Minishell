@@ -1,21 +1,21 @@
 
 #include "../includes/minishell.h"
 
+
 int main(int ac, char **av, char **env)
 {
-    char *read;
+    char *input;
+    
+    (void)ac;
+    (void)av;
     while (1)
     {
-        read = readline("minishell> ");
-        if (!read)
-            // free and exit properly
-        if (empty_line(read))
-            continue ;
-        if (!parse_content())
-            continue;
-        if (!exec())
-            continue;
-        
+        input = readline("minishell> ");
+        if (!input)
+            break;
+        if (*input)
+            add_history(input);
+        free(input);
     }
-    return 0;
+    return (0);
 }
