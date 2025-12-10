@@ -1,20 +1,13 @@
+#include "../../includes/minishell.h"
 
-
-void print_env(t_command *cmd, t_exit exit)
+void env_print(t_env *env_list, t_shell shell)
 {
-    char **env;
-
-    env = environ;
-    if (!cmd)
-        return ;
-    if (valid_commmand())
+    t_env *current = env_list;
+    
+    while (current != NULL)
     {
-        printf("%s\n",env);
-        exit.id = 0;
+        printf("%s=%s\n", current->key, current->value);
+        current = current->next;
     }
-    else
-    {
-        printf("minishell: command not found: %s\n",*cmd);
-        exit.id = 1;
-    }
+    shell.last_exit = 0;
 }
