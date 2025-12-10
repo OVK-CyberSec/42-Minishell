@@ -23,33 +23,26 @@ typedef struct s_env {
 
 /* ========== TOKENS ========== */
 
-typedef enum e_token_type {
-    TOKEN_WORD,
-    TOKEN_PIPE,
-    TOKEN_REDIR_IN,        // <
-    TOKEN_REDIR_OUT,       // >
-    TOKEN_REDIR_APPEND,    // >>
-    TOKEN_HEREDOC,         // <<
-    TOKEN_ENV_VAR          // $VAR
-} t_token_type;
+typedef enum e_token_type
+{
+	TOKEN_WORD,
+	TOKEN_PIPE,
+	REDIR_IN,
+	REDIR_OUT,
+	REDIR_APPEND,
+	REDIR_HEREDOC,
+	TOKEN_VAR,
+}	t_token_type;
 
 typedef struct s_token {
     t_token_type    type;
     char            *value;
+    int				in_quotes;
     struct s_token  *next;
 } t_token;
 
-/* ========== REDIRECTIONS ========== */
-
-typedef enum e_redir_type {
-    REDIR_IN,      // <
-    REDIR_OUT,     // >
-    REDIR_APPEND,  // >>
-    REDIR_HEREDOC  // <<
-} t_redir_type;
-
 typedef struct s_redir {
-    t_redir_type    type;
+    t_token_type    type;
     char            *file;         // Nom du fichier ou délimiteur heredoc
     int             fd;            // File descriptor (utile pour heredoc temporaire)
     struct s_redir  *next;
@@ -78,4 +71,20 @@ typedef struct s_shell {
     bool        running;        // Flag pour la boucle principale
 } t_shell;
 
+/* ========== PARSER ========== */
+
+t_cmd	*parser(t_token *tokens);
+t_cmd	*init_cmd(void);
+t_token	*handle_redirection(t_cmd *cmd, t_token *token);
+void	add_arg_to_cmd(t_cmd *cmd, char *arg);
+int		is_redirection(t_token_type type);
+void	print_one_redir(t_redir *redir);
+
+/* ========== PARSER UTILS ========== */
+
+void	free_cmds(t_cmd *cmds);
+
+/* ========== DEBUG ========== */
+
+void	print_cmds(t_cmd *cmds);
 #endif
