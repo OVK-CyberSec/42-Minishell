@@ -4,10 +4,10 @@ bool	is_builtin(char *cmd)
 {
 	if (!cmd)
 		return (false);
-	if (!ft_strncmp("echo", cmd, INT_MAX) || !ft_strncmp("cd", cmd, INT_MAX) \
-	|| !ft_strncmp("pwd", cmd, INT_MAX) || !ft_strncmp("export", cmd, INT_MAX) \
-	|| !ft_strncmp("unset", cmd, INT_MAX) || !ft_strncmp("env", cmd, INT_MAX) \
-	|| !ft_strncmp("exit", cmd, INT_MAX))
+	if (!ft_strcmp(cmd, "echo") || !ft_strcmp(cmd, "cd") \
+	|| !ft_strcmp(cmd, "pwd") || !ft_strcmp(cmd, "export") \
+	|| !ft_strcmp(cmd, "unset") || !ft_strcmp(cmd, "env") \
+	|| !ft_strcmp(cmd, "exit"))
 		return (true);
 	return (false);
 }
@@ -40,5 +40,12 @@ void	exec(char *cmd, char **env)
 	exit(0);
 }
 
-int	exec_cmd()
+int	exec_cmd(t_cmd *cmd)
+{
+	if (is_builtin(cmd->args[0]))
+	
+	else
+		exec()
+		
+}
 

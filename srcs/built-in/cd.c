@@ -1,22 +1,44 @@
 #include "minishell.h"
 
-void exec_cd(t_command *arg, t_exit exit)
+int builtin_cd(char **args, t_shell *shell)
 {
-    if (argc == 0)
-        chdir("~");
-    else if (valid_commmand())
+    char *path;
+    char *old_pwd;
+    char cwd[PATH_MAX];
+
+    path = args[1];
+    if (!path)
     {
-        chdir(arg->cmd);
-        exit.id = 0;
+        path = get_env_value(shell->env, "HOME");
+        if (!path)
+            handle_err_cd(0, path, shell);
     }
-    else if (!(valid_commmand()))
-        cd_err_msg(arg, exit);
+    old_pwd = ft_strdup(get_env_value(shell->env, "PWD"));
+    if (chdir(path) == -1)
+    {
+        handle_err_cd(1, path, shell);
+        free(old_pwd);
+        return 1;
+    }
+    update_env_value(shell, "OLDPWD", old_pwd);
+    free(old_pwd);
+    if (getcwd(cwd, sizeof(cwd)))
+        update_env_value(shell, "PWD", cwd);
+    shell->last_exit = 0;
+    return 0;
 }
 
 
-void cd_err_msg(t_command *arg, t_exit exit)
+int handle_err_cd(int id, char *str, t_shell shell)
 {
-    printf("cd: no such file or directory: %s\n", arg);
-    exit.id = 1;
-    return ;
+    if (id == 0)
+    {
+        printf("cd: HOME not set\n");
+        return 1;
+    }
+    else if (id == 1)
+    {
+        printf("cd: no such file or directory: %s", str);
+    }
+    shell->last_exit = 1;
 }
