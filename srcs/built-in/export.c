@@ -1,77 +1,109 @@
+/* ************************************************************************** */
+/*                                                                            */
+/*                                                        :::      ::::::::   */
+/*   export.c                                           :+:      :+:    :+:   */
+/*                                                    +:+ +:+         +:+     */
+/*   By: mohifdi <marvin@42.fr>                     +#+  +:+       +#+        */
+/*                                                +#+#+#+#+#+   +#+           */
+/*   Created: 2025/12/11 15:23:13 by mohifdi           #+#    #+#             */
+/*   Updated: 2025/12/11 15:27:08 by mohifdi          ###   ########.fr       */
+/*                                                                            */
+/* ************************************************************************** */
+
 #include "../../includes/minishell.h"
 
-int is_valid_identifier(char *arg, char *equal)
+static int	is_valid_identifier(char *arg, char *equal)
 {
-    int i;
+	int		i;
+	int		len;
 
-    i = 0;
-    if (!arg || !arg[0])
-        return (0);
-    if (equal)
-        arg[equal - arg] = '\0';
-    if (!(ft_isalpha(arg[0]) || arg[0] == '_'))
-        return (0);
-    i = 1;
-    while (arg[i])
-    {
-        if (!(ft_isalnum(arg[i]) || arg[i] == '_'))
-            return (0);
-        i++;
-    }
-    return (1);
+	if (!arg || !arg[0])
+		return (0);
+	if (equal)
+		len = equal - arg;
+	else
+		len = ft_strlen(arg);
+	if (!(ft_isalpha(arg[0]) || arg[0] == '_'))
+		return (0);
+	i = 1;
+	while (i < len)
+	{
+		if (!(ft_isalnum(arg[i]) || arg[i] == '_'))
+			return (0);
+		i++;
+	}
+	return (1);
 }
 
-void mark_as_exported(t_shell *shell, char *key)
+static void	print_env_sorted(t_env *env)
 {
-    t_env *var;
+	t_env	*sorted;
 
-    var = find_env(shell->env, key);
-    if (var)
-        var->exported = 1;
-        add_env(&shell->env, key, "");
+	if (!env)
+		return ;
+	sorted = copy_env_list(env);
+	if (!sorted)
+		return ;
+	sorted = sort_list(env);
+	if (!sorted)
+		return ;
+	while (sorted)
+	{
+		printf("%s=%s\n", sorted->key, sorted->value);
+		sorted = sorted->next;
+	}
+	free_env_list(sorted);
 }
 
-static void process_export_arg(char *arg, t_shell *shell)
+void	mark_as_exported(t_shell *shell, char *key)
 {
-    char *equal;
-    char *key;
-    char *value;
+	t_env	*var;
 
-    equal = ft_strchr(arg, '=');
-    if (!is_valid_identifier(arg, equal))
-    {
-        ft_putstr_fd("export: `", STDERR);
-        ft_putstr_fd(arg, STDERR);
-        ft_putstr_fd("': not a valid identifier\n", STDERR);
-        shell->exit_status = 1;
-        return;
-    }
-    if (equal)
-    {
-        key = ft_substr(arg, 0, equal - arg);
-        value = ft_strdup(equal + 1);
-        update_env(&shell->env, key, value);
-        free(key);
-        free(value);
-    }
-    else
-        mark_as_exported(shell, arg);
+	var = find_env(shell->env, key);
+	if (var)
+		var->exported = 1;
+	add_env(&shell->env, key, "");
 }
 
-int builtin_export(char **args, t_shell *shell)
+static void	process_export_arg(char *arg, t_shell *shell)
 {
-    int i;
+	char	*equal;
+	char	*key;
+	char	*value;
 
-    i = 1;
-    if (!args[1])
-    {
-        print_env_sorted(shell->env);
-        return 0;
-    }
-    while (args[i])
-    {
-        process_export_arg(args[i], shell);
-        i++;
-    }
-    return shell->exit_status;
+	equal = ft_strchr(arg, '=');
+	if (!is_valid_identifier(arg, equal))
+	{
+		printf("export: not an identifier: %s\n", arg);
+		shell->exit_status = 1;
+		return ;
+	}
+	if (equal)
+	{
+		key = ft_substr(arg, 0, equal - arg);
+		value = ft_strdup(equal + 1);
+		update_env(&shell->env, key, value);
+		free(key);
+		free(value);
+	}
+	else
+		mark_as_exported(shell, arg);
+}
+
+int	builtin_export(char **args, t_shell *shell)
+{
+	int	i;
+
+	i = 1;
+	if (!args[1])
+	{
+		print_env_sorted(shell->env);
+		return (0);
+	}
+	while (args[i])
+	{
+		process_export_arg(args[i], shell);
+		i++;
+	}
+	return (0);
 }
