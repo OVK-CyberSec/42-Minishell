@@ -12,7 +12,7 @@
 
 #include "../../includes/minishell.h"
 
-void	env_print(t_env *env_list, t_shell *shell)
+void	builtin_env(t_env *env_list, t_shell *shell)
 {
 	t_env	*current;
 

@@ -22,7 +22,7 @@ static int	handle_err(int id, t_shell *shell, char *str)
 	return (1);
 }
 
-int	remove_env_node(t_shell *shell, const char *key)
+static int	remove_env_node(t_shell *shell, const char *key)
 {
 	t_env	*current;
 	t_env	*prev;
