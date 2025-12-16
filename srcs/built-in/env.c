@@ -12,15 +12,25 @@
 
 #include "../../includes/minishell.h"
 
-void	builtin_env(t_env *env_list, t_shell *shell)
+void	builtin_env(t_shell *shell)
 {
-	t_env	*current;
+	int	i;
+	t_shell tmp;
 
-	current = env_list;
-	while (current != NULL)
+	tmp = *shell;
+	if (!tmp.env)
 	{
-		printf("%s=%s\n", current->key, current->value);
-		current = current->next;
+		ft_putstr_fd("minishell: env: environment not found\n", 2);
+		return ;
 	}
-	shell->last_exit = 0;
+	i = 0;
+	while (tmp.env[i])
+	{
+		if (ft_strchr(tmp.env[i], '=') != NULL)
+		{
+			write(1, tmp.env[i], ft_strlen(tmp.env[i]));
+			write(1, "\n", 1);
+		}
+		i++;
+	}
 }

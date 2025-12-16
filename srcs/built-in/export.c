@@ -12,7 +12,7 @@
 
 #include "../../includes/minishell.h"
 
-static int	is_valid_identifier(char *arg, char *equal)
+static int	is_valid_id(char *arg, char *equal)
 {
 	int		i;
 	int		len;
@@ -35,35 +35,37 @@ static int	is_valid_identifier(char *arg, char *equal)
 	return (1);
 }
 
-static void	print_env_sorted(t_env *env)
+static void	print_env_sorted(t_shell *shell)
 {
-	t_env	*sorted;
+	char	**sorted;
+	int i;
 
-	if (!env)
+	if (!(shell->env))
 		return ;
-	sorted = copy_env_list(env);
-	if (!sorted)
+	sorted = shell->env;
+	if (!(sorted))
 		return ;
-	sorted = sort_list(env);
-	if (!sorted)
-		return ;
-	while (sorted)
+	sort_tab(sorted);
+	i = 0;
+	while (sorted[i])
 	{
-		printf("%s=%s\n", sorted->key, sorted->value);
-		sorted = sorted->next;
+		printf("%s\n", sorted[i]);
+		i++;
 	}
-	free_env_list(sorted);
+	free_tab(sorted);
 }
 
 void	mark_as_exported(t_shell *shell, char *key)
 {
 	t_env	*var;
 
-	var = find_env(shell->env, key);
+	if (is_key_found(shell->env, key))
+		return ;
+	var = find_env(shell->env, key); // last 
 	if (var)
 		var->exported = 1;
 	add_env(&shell->env, key, "");
-}
+}	
 
 static void	process_export_arg(char *arg, t_shell *shell)
 {
@@ -72,7 +74,7 @@ static void	process_export_arg(char *arg, t_shell *shell)
 	char	*value;
 
 	equal = ft_strchr(arg, '=');
-	if (!is_valid_identifier(arg, equal))
+	if (!is_valid_id(arg, equal))
 	{
 		printf("export: not an identifier: %s\n", arg);
 		shell->exit_status = 1;

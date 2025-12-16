@@ -39,7 +39,7 @@ char	*my_getenv(char *name, char **env)
 		while (env[i][j] && env[i][j] != '=')
 			j++;
 		sub = ft_substr(env[i], 0, j);
-		if (ft_strcmp(sub, name) == 0)
+		if (strcmp(sub, name) == 0)
 		{
 			free(sub);
 			return (env[i] + j + 1);
@@ -79,18 +79,34 @@ char	*get_path(char *cmd, char **env)
 	return (NULL);
 }
 
-void	exec_absolute(char **s_cmd, char **env)
+// void	exec_absolute(t_cmd *cmd, char **env, t_shell *shell)
+// {
+// 	if (access(cmd->args[0], F_OK | X_OK) == 0)
+// 	{
+// 		execve(cmd->args[0], cmd->args, env);
+// 		perror("minishell");
+// 		shell->last_exit = 0;
+// 	}
+// 	else
+// 	{
+// 		printf("minishell: no such file or directory: %s", cmd->args[0]);
+// 		shell->last_exit = 127;
+// 	}
+// 	//ft_free_tab(cmd->args[0]);
+// }
+
+void	exec_absolute(char **cmd, char **env, t_shell *shell)
 {
-	if (access(s_cmd[0], F_OK | X_OK) == 0)
+	if (access(cmd[0], F_OK | X_OK) == 0)
 	{
-		execve(s_cmd[0], s_cmd, env);
+		execve(cmd[0], cmd, env);
 		perror("minishell");
+		shell->last_exit = 0;
 	}
 	else
 	{
-		ft_putstr_fd("pipex: no such file or permission denied: ", 2);
-		ft_putendl_fd(s_cmd[0], 2);
+		printf("minishell: no such file or directory: %s", cmd[0]);
+		shell->last_exit = 127;
 	}
-	ft_free_tab(s_cmd);
-	exit(127);
+	//ft_free_tab(cmd->args[0]);
 }

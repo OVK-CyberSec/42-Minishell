@@ -13,13 +13,13 @@
 # include <readline/readline.h>
 # include <readline/history.h>
 
-/* ========== ENVIRONNEMENT ========== */
+// /* ========== ENVIRONNEMENT ========== */
 
-typedef struct s_env {
-    char            *key;       // Nom de la variable
-    char            *value;     // Valeur
-    struct s_env    *next;      // Liste chaînée
-} t_env;
+// typedef struct s_env {
+//     char            *key;       // Nom de la variable
+//     char            *value;     // Valeur
+//     struct s_env    *next; 
+// } t_env;
 
 /* ========== TOKENS ========== */
 
@@ -73,9 +73,44 @@ typedef struct s_pipeline {
 /* ========== CONTEXTE GLOBAL ========== */
 
 typedef struct s_shell {
-    t_env       *env_list;      // ✓ Liste chaînée (au lieu de char**)
+    char    **env;      
     int         last_exit;      // Code de retour de la dernière commande ($?)
     bool        running;        // Flag pour la boucle principale
 } t_shell;
 
+
+
+/* ========== Build-in ========== */
+
+int	builtin_cd(char **args, t_shell *shell);
+int	builtin_echo(char **args);
+void	builtin_env(t_shell *shell);
+int	builtin_export(char **args, t_shell *shell);
+int	builtin_pwd(t_shell *shell);
+int	builtin_unset(char **argv, t_shell *shell);
+
+/* ========== Exec ========== */
+
+int exec_pipeline(char ***cmds, int nb_cmds, t_shell *shell);
+int	exec_cmd(char **cmd, t_shell *shell);
+bool	is_builtin(char *cmd);
+void	exec_builtin(char **cmd, t_shell *shell);
+int	exec_native(char **cmd, t_shell *shell, char **env);
+void	exec_absolute(char **cmd, char **env, t_shell *shell);
+char	*get_path(char *cmd, char **env);
+
+/* ========== Tools ========== */
+
+//char *get_env_value(t_shell shell, char *val);
+//void    update_env_value(t_shell shell, char *val);
+int is_valid_identifier(const char *var);
+void *sort_tab(char **env);
+void update_env_value(t_shell *shell, const char *key, const char *value);
+char	*get_env_value(char **env, const char *key);
+void free_tab(char **tab);
+void	mark_as_exported(t_shell *shell, char *key);
+//t_env *copy_env_list(t_env *env);
+//void free_env_list(t_env *env);
+
 #endif
+

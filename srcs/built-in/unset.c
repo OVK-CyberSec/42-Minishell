@@ -10,7 +10,7 @@
 /*                                                                            */
 /* ************************************************************************** */
 
-#include "../../includes/minishellell.h"
+#include "../../includes/minishell.h"
 
 static int	handle_err(int id, t_shell *shell, char *str)
 {
@@ -22,30 +22,47 @@ static int	handle_err(int id, t_shell *shell, char *str)
 	return (1);
 }
 
-static int	remove_env_node(t_shell *shell, const char *key)
+static void remove_env_entry(t_shell *shell, int index)
 {
-	t_env	*current;
-	t_env	*prev;
+    int i;
+	int size;
 
-	current = shell->env_list;
-	prev = NULL;
-	while (current)
+	i = 0;
+    while (shell->env[i])
+        i++;
+    size = i;
+    free(shell->env[index]);
+	i = index;
+    while (i < size - 1)
 	{
-		if (ft_strcmp(current->key, key) == 0)
-		{
-			if (prev == NULL)
-				shell->env_list = current->next;
-			else
-				prev->next = current->next;
-			free(current->key);
-			free(current->value);
-			free(current);
-			return (0);
-		}
-		prev = current;
-		current = current->next;
+        shell->env[i] = shell->env[i + 1];
+		i++;
 	}
-	handle_err(0, shell, key);
+    shell->env[size - 1] = NULL;
+}
+
+static void remove_by_key(t_shell *shell, const char *key)
+{
+	char *sep;
+	int len;
+    int key_len;
+	int i;
+
+	key_len = ft_strlen(key);
+	i = 0;
+    while (shell->env[i] != NULL)
+    {
+        sep = ft_strchr(shell->env[i], '=');
+        if (!sep)
+            continue;
+        len = sep - shell->env[i];
+        if (len == key_len && strncmp(shell->env[i], key, key_len) == 0)
+        {
+            remove_env_entry(shell, i);
+            return;
+        }
+		i++;
+    }
 }
 
 int	builtin_unset(char **argv, t_shell *shell)
@@ -58,9 +75,9 @@ int	builtin_unset(char **argv, t_shell *shell)
 	while (argv[i])
 	{
 		if (is_valid_identifier(argv[i]))
-			remove_env_node(shell, argv[i]);
+			remove_by_key(shell, argv[i]);
 		else
-			handle_err(2, shell, argv[1]);
+			handle_err(0, shell, argv[1]);
 		i++;
 	}
 	shell->last_exit = 0;
