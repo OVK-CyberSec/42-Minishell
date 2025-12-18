@@ -48,11 +48,24 @@ typedef struct s_redir {
     struct s_redir  *next;
 } t_redir;
 
+t_token *lexer(char *input);
+void	add_token(t_token **tokens, t_token_type type, char *value);
+int		handle_pipe(char *input, int i, t_token **tokens);
+int		handle_redir_out(char *input, int i, t_token **tokens);
+int		handle_redir_in(char *input, int i, t_token **tokens);
+int		handle_quotes(char *input, int i, t_token **tokens);
+int		handle_dollar(char *input, int i, t_token **tokens);
+void	print_tokens(t_token *tokens);
+void	free_tokens(t_token *tokens);
+
+
+
 /* ========== COMMANDE SIMPLE ========== */
 
 typedef struct s_cmd {
     char    **args;         // Tableau d'arguments terminé par NULL
-    t_redir *redirs;        // Liste chaînée de redirections
+    t_redir *redirs;       // Liste chaînée de redirections
+    struct s_cmd    *next;
     int     argc;           // Nombre d'arguments (optionnel mais pratique)
 } t_cmd;
 

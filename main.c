@@ -10,7 +10,7 @@
 /*                                                                            */
 /* ************************************************************************** */
 
-#include "../includes/minishell.h"
+#include "includes/minishell.h"
 
 // int main(int ac, char **av, char **env)
 // {
@@ -33,31 +33,61 @@
 // 	return 0;
 // }
 
-int main(void)
+int main(int ac, char **av, char **envp)
 {
-    char *tests[] = {
-		"echo hello world",
-		"echo $USER",
-		"cat < file.txt",
-		"echo test > out.txt",
-		"echo test >> out.txt",
-		"cat << EOF",
-		"ls -l | grep test",
-		"cat file | grep test | wc -l",
-		"echo 'hello world'",
-		"echo \"hello $USER\"",
-		"echo test>file",  // Sans espaces
-		"cat<in>out",      // Multiple redirections
-		NULL
-    };
-    int i = 0;
-    while (tests[i])
+    char    *input;
+    t_token *tokens;
+    t_cmd   *cmds;
+    
+    (void)ac;
+    (void)av;
+    (void)envp;
+    while (1)
     {
-        printf("\n=== Test: %s ===\n", tests[i]);
-        t_token *tokens = lexer(tests[i]);
+        input = readline("minishell> ");
+        if (!input)
+        {
+            printf("exit\n");
+            break;
+        }
+        if (!*input)
+        {
+            free(input);
+            continue;
+        }
+        add_history(input);
+        
+        // === LEXER ===
+        tokens = lexer(input);
+        if (!tokens)
+        {
+            printf("❌ Erreur lexer\n");
+            free(input);
+            continue;
+        }
+        
+        printf("\n📊 TOKENS:\n");
         print_tokens(tokens);
-		free_tokens(tokens);
-        i++;
+        
+        // === PARSER ===
+        cmds = parser(tokens);
+        if (!cmds)
+        {
+            printf("❌ Erreur parser\n");
+            free_tokens(tokens);
+            free(input);
+            continue;
+        }
+        
+        printf("\n📦 COMMANDES:");
+        print_cmds(cmds);
+        printf("\n");
+        
+        // === CLEANUP ===
+        free_tokens(tokens);
+        free_cmds(cmds);
+        free(input);
     }
+    
     return (0);
 }

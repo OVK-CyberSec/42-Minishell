@@ -41,7 +41,7 @@ void	add_arg_to_cmd(t_cmd *cmd, char *arg)
 	count = 0;
 	while (cmd->args[count])
 		count++;
-	new_args = malloc(sizeof(char *) * count + 2);
+	new_args = malloc(sizeof(char *) * (count + 2));
 	if (!new_args)
 		return ;
 	while (++i < count)
@@ -83,7 +83,7 @@ void	add_redir_to_cmd(t_cmd *cmd, t_token_type type, char *file)
 		tmp = cmd->redirs;
 		while (tmp->next)
 			tmp = tmp->next;
-		tmp->next = tmp;
+		tmp->next = new;
 	}
 
 }
@@ -93,10 +93,10 @@ t_token	*handle_redirection(t_cmd *cmd, t_token *token)
 
 	type = token->type;
 	token = token->next;
-	if (!token || token->type == TOKEN_WORD)
+	if (!token || token->type != TOKEN_WORD)
 		return (NULL);
 	add_redir_to_cmd(cmd, type, token->value);
-	return (token);
+	return (token->next);
 }
 
 void	add_token_to_cmd(t_cmd *cmd, t_token_type type, char *file)
@@ -120,6 +120,5 @@ void	add_token_to_cmd(t_cmd *cmd, t_token_type type, char *file)
 		tmp->next = new;
 	}
 }
-
 
 

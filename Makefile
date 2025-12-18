@@ -7,9 +7,9 @@ LIBFT_DIR = Libft
 LIBFT = $(LIBFT_DIR)/libft.a
 
 
-SRCS = srcs/main.c srcs/lexer/token_handler.c srcs/lexer/token_reader.c \
+SRCS = main.c srcs/lexer/token_handler.c srcs/lexer/token_reader.c \
 		srcs/utils/tools.c srcs/parser/parser.c srcs/utils/parser_utils.c \
-		srcs/utils/print_utils.c
+		srcs/utils/print_utils.c srcs/utils/tools2.c
 
 OBJS = $(SRCS:.c=.o)
 
