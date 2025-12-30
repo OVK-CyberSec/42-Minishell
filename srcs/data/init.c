@@ -1,18 +1,102 @@
 #include "../../includes/minishell.h"
 
-void    init_tokens(t_cmd *cmd, t_token *token)
+static t_env	*create_env_var(char *key, char *value)
 {
-    t_cmd   *tmp;
-    int i;
+	t_env	*env;
 
-    tmp = cmd;
-    if (tmp)
-        return ;
-    i = 0;
-    while(tmp)
-    {
-        if (is_token(tmp->args[i]))
-            token = tmp->arg[i];
-        tmp = tmp->next;
-    }
+	env = malloc(sizeof(t_env));
+	if (!env)
+		return (NULL);
+	env->key = ft_strdup(key);
+	env->value = ft_strdup(value);
+	env->next = NULL;
+	return (env);
+}
+
+static t_env	*ft_env_last(t_env *env)
+{
+	if (!env)
+		return (NULL);
+	while (env->next)
+		env = env->next;
+	return (env);
+}
+
+t_env	*init_env(char **envp)
+{
+	t_env	*env;
+	t_env	*new_var;
+	char	*eq;
+	int		i;
+
+	env = NULL;
+	i = 0;
+	while (envp[i])
+	{
+		eq = ft_strchr(envp[i], '=');
+		if (eq)
+		{
+			new_var = create_env_var(
+					ft_substr(envp[i], 0, eq - envp[i]),
+					ft_strdup(eq + 1));
+			if (!env)
+				env = new_var;
+			else
+				ft_env_last(env)->next = new_var;
+		}
+		i++;
+	}
+	return (env);
+}
+
+void	add_env_var(t_env **env, char *key, char *value)
+{
+	t_env	*tmp;
+
+	if (!key)
+		return ;
+	tmp = *env;
+	while (tmp)
+	{
+		if (!ft_strcmp(tmp->key, key))
+		{
+			free(tmp->value);
+			tmp->value = ft_strdup(value);
+			return ;
+		}
+		if (!tmp->next)
+			break ;
+		tmp = tmp->next;
+	}
+	if (!tmp)
+		*env = create_env_var(key, value);
+	else
+		tmp->next = create_env_var(key, value);
+}
+
+char	**env_to_array(t_env *env)
+{
+	char	**envp;
+	t_env	*tmp;
+	char	*line;
+	int		i;
+
+	i = 0;
+	tmp = env;
+	while (tmp && ++i)
+		tmp = tmp->next;
+	envp = malloc(sizeof(char *) * (i + 1));
+	if (!envp)
+		return (NULL);
+	tmp = env;
+	i = 0;
+	while (tmp)
+	{
+		line = ft_strjoin(tmp->key, "=");
+		envp[i++] = ft_strjoin(line, tmp->value);
+		free(line);
+		tmp = tmp->next;
+	}
+	envp[i] = NULL;
+	return (envp);
 }

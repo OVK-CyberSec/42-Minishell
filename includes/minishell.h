@@ -1,116 +1,161 @@
 #ifndef MINISHELL_H
 # define MINISHELL_H
 
-# include "../Libft/libft.h"
 # include <stdio.h>
 # include <stdlib.h>
-# include <stdbool.h>
-# include <sys/types.h>
+# include <unistd.h>
+# include <string.h>
+# include <signal.h>
 # include <sys/wait.h>
-# include <limits.h>
-# include <fcntl.h>
+# include <sys/types.h>
 # include <sys/stat.h>
+# include <fcntl.h>
+# include <errno.h>
 # include <readline/readline.h>
 # include <readline/history.h>
+# include <dirent.h>
+# include <termios.h>
 
-// /* ========== ENVIRONNEMENT ========== */
+/* Token Types */
+# define TOKEN_WORD 1
+# define TOKEN_PIPE 2
+# define TOKEN_REDIR_IN 3
+# define TOKEN_REDIR_OUT 4
+# define TOKEN_REDIR_APPEND 5
+# define TOKEN_HEREDOC 6
 
-// typedef struct s_env {
-//     char            *key;       // Nom de la variable
-//     char            *value;     // Valeur
-//     struct s_env    *next; 
-// } t_env;
+/* Exit Codes */
+# define SUCCESS 0
+# define FAILURE 1
+# define CMD_NOT_FOUND 127
+# define CMD_NOT_EXECUTABLE 126
 
-/* ========== TOKENS ========== */
+/* Structures */
+typedef struct s_token
+{
+	char			*value;
+	int				type;
+	struct s_token	*next;
+}	t_token;
 
-typedef enum e_token_type {
-    TOKEN_WORD,
-    TOKEN_PIPE,
-    TOKEN_REDIR_IN,        // <
-    TOKEN_REDIR_OUT,       // >
-    TOKEN_REDIR_APPEND,    // >>
-    TOKEN_HEREDOC,         // <<
-    TOKEN_ENV_VAR          // $VAR
-} t_token_type;
+typedef struct s_redir
+{
+	int				type;
+	char			*file;
+	struct s_redir	*next;
+}	t_redir;
 
-typedef struct s_token {
-    t_token_type    type;
-    char            *value;
-    struct s_token  *next;
-} t_token;
+typedef struct s_cmd
+{
+	char			**args;
+	t_redir			*redirs;
+	struct s_cmd	*next;
+}	t_cmd;
 
-/* ========== REDIRECTIONS ========== */
+typedef struct s_env
+{
+	char			*key;
+	char			*value;
+	struct s_env	*next;
+}	t_env;
 
-typedef enum e_redir_type {
-    REDIR_IN,      // <
-    REDIR_OUT,     // >
-    REDIR_APPEND,  // >>
-    REDIR_HEREDOC  // <<
-} t_redir_type;
+typedef struct s_pipex
+{
+    int     n;
+    int     i;
+    int     **pipes;
+    pid_t   *pids;
+}   t_pipex;
 
-typedef struct s_redir {
-    t_redir_type    type;
-    char            *file;         // Nom du fichier ou délimiteur heredoc
-    int             fd;            // File descriptor (utile pour heredoc temporaire)
-    struct s_redir  *next;
-} t_redir;
+typedef struct s_data
+{
+	t_env			*env;
+	t_cmd			*cmds;
+	char			*input;
+	int				exit_status;
+	int				in_heredoc;
+}	t_data;
 
-/* ========== COMMANDE SIMPLE ========== */
+/* Global variable for signal handling */
+extern int	g_signal;
 
-typedef struct s_cmd {
-    char    **args;         // Tableau d'arguments terminé par NULL
-    t_redir *redirs;        // Liste chaînée de redirections
-    int     argc;           // Nombre d'arguments (optionnel mais pratique)
-} t_cmd;
+/* Parsing Functions */
+t_token		*lexer(char *input);
+t_cmd		*parser(t_token *tokens);
+void		expand_variables(t_token *tokens, t_data *data);
+char		*get_env_value(t_env *env, char *key);
 
-/* ========== PIPELINE ========== */
+/* Execution Functions */
+void		execute_commands(t_cmd *cmds, t_data *data);
+void		execute_single_cmd(t_cmd *cmd, t_data *data);
+void		execute_pipeline(t_cmd *cmds, t_data *data);
+int			setup_redirections(t_redir *redirs, t_data *data);
+void		setup_pipes(t_pipex *px);
+void		exec_binary(t_cmd *cmd, t_data *data);
 
-typedef struct s_pipeline {
-    t_cmd   **commands;     // Tableau de commandes
-    int     cmd_count;      // Nombre de commandes
-} t_pipeline;
+/* Built-in Commands */
+int			is_builtin(char *cmd);
+int			execute_builtin(t_cmd *cmd, t_data *data);
+int			builtin_echo(char **args);
+int			builtin_cd(char **args, t_data *data);
+int			builtin_pwd(void);
+int			builtin_export(char **args, t_data *data);
+int			builtin_unset(char **args, t_data *data);
+int			builtin_env(t_data *data);
+int			builtin_exit(char **args, t_data *data);
 
-/* ========== CONTEXTE GLOBAL ========== */
+/* Environment Functions */
+t_env		*init_env(char **envp);
+void		add_env_var(t_env **env, char *key, char *value);
+void		remove_env_var(t_env **env, char *key);
+char		**env_to_array(t_env *env);
+void		free_env(t_env *env);
 
-typedef struct s_shell {
-    char    **env;      
-    int         last_exit;      // Code de retour de la dernière commande ($?)
-    bool        running;        // Flag pour la boucle principale
-} t_shell;
+/* Signal Handling */
+void		setup_signals(void);
+void		signal_handler(int signum);
+void		setup_heredoc_signals(void);
+void		setup_heredoc_signals(void);
 
+/* Heredoc Functions */
+char		*handle_heredoc(char *delimiter, t_data *data);
+void		process_heredoc(t_redir *redir, t_data *data);
+char		*handle_heredoc(char *delimiter, t_data *data);
+void		heredoc_signal_handler(int signum);
 
+/* Path Resolution */
+char		*find_command_path(char *cmd, t_env *env);
+int			is_directory(char *path);
 
-/* ========== Build-in ========== */
+/* Memory Management */
+void		free_tokens(t_token *tokens);
+void		free_commands(t_cmd *cmds);
+void		free_redirections(t_redir *redirs);
+void		free_split(char **split);
+void		cleanup_data(t_data *data);
 
-int	builtin_cd(char **args, t_shell *shell);
-int	builtin_echo(char **args);
-void	builtin_env(t_shell *shell);
-int	builtin_export(char **args, t_shell *shell);
-int	builtin_pwd(t_shell *shell);
-int	builtin_unset(char **argv, t_shell *shell);
+/* Utility Functions */
+char		**ft_split(char const *s, char c);
+char		*ft_strdup(const char *s);
+char		*ft_strjoin(char const *s1, char const *s2);
+int			ft_strcmp(const char *s1, const char *s2);
+int			ft_strncmp(const char *s1, const char *s2, size_t n);
+char		*ft_strchr(const char *s, int c);
+char		*ft_substr(char const *s, unsigned int start, size_t len);
+size_t		ft_strlen(const char *s);
+int			ft_isspace(int c);
+int			ft_isalnum(int c);
+void		*ft_calloc(size_t count, size_t size);
+char		*ft_itoa(int n);
+int			ft_isalpha(int c);
+int			is_valid_id(const char *s);
 
-/* ========== Exec ========== */
+/* Error Handling */
+void		print_error(char *cmd, char *msg);
+void		exit_error(char *msg, int code);
 
-int exec_pipeline(char ***cmds, int nb_cmds, t_shell *shell);
-int	exec_cmd(char **cmd, t_shell *shell);
-bool	is_builtin(char *cmd);
-void	exec_builtin(char **cmd, t_shell *shell);
-int	exec_native(char **cmd, t_shell *shell, char **env);
-void	exec_absolute(char **cmd, char **env, t_shell *shell);
-char	*get_path(char *cmd, char **env);
-
-/* ========== Tools ========== */
-
-//char *get_env_value(t_shell shell, char *val);
-//void    update_env_value(t_shell shell, char *val);
-int is_valid_identifier(const char *var);
-void *sort_tab(char **env);
-void update_env_value(t_shell *shell, const char *key, const char *value);
-char	*get_env_value(char **env, const char *key);
-void free_tab(char **tab);
-void	mark_as_exported(t_shell *shell, char *key);
-//t_env *copy_env_list(t_env *env);
-//void free_env_list(t_env *env);
+/* Input Validation */
+int			check_syntax(t_token *tokens);
+int			check_quotes(char *input);
 
 #endif
-

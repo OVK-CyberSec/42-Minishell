@@ -12,31 +12,39 @@ CC					= cc
 CFLAGS				= -Wall  -Wextra -I
 RM					= rm -f
 
-BUILTIN_DIR		=		$(SRC_DIR)built-in/env.c \
-						$(SRC_DIR)built-in/cd.c \
-						$(SRC_DIR)built-in/pwd.c \
- 						$(SRC_DIR)built-in/echo.c \
-						$(SRC_DIR)built-in/unset.c \
-# 						$(SRC_DIR)built-in/export.c \
-# 						$(SRC_DIR)built-in/exit.c \
+BUILTIN_DIR		=		$(SRC_DIR)builtins/env.c \
+						$(SRC_DIR)builtins/cd.c \
+						$(SRC_DIR)builtins/pwd.c \
+ 						$(SRC_DIR)builtins/echo.c \
+						$(SRC_DIR)builtins/unset.c \
+ 						$(SRC_DIR)builtins/export.c \
+ 						$(SRC_DIR)builtins/exit.c \
 
+DATA_DIR		=		$(SRC_DIR)data/init.c \
+						$(SRC_DIR)data/init2.c \
+						$(SRC_DIR)data/cleaner.c \
 
-# DATA_DIR		=		$(SRC_DIR)data/init.c \
+PARSING_DIR		=		$(SRC_DIR)parsing/expander.c \
+						$(SRC_DIR)parsing/lexer.c \
+						$(SRC_DIR)parsing/validation.c \
+						$(SRC_DIR)parsing/parser.c \
 
-# LEXER_DIR		=		$(SRC_DIR)lexer/cd.c \
+SIGNAL_DIR		=		$(SRC_DIR)signals/signals.c \
 
-# PARSING_DIR		=		$(SRC_DIR)parsing/cd.c \
+EXEC_DIR		=		$(SRC_DIR)exec/exec.c \
+ 						$(SRC_DIR)exec/exec2.c \
+						$(SRC_DIR)exec/exec3.c \
+						$(SRC_DIR)exec/path.c	\
 
-EXEC_DIR		=		$(SRC_DIR)exec/exec_tools.c \
- 						$(SRC_DIR)exec/exec.c \
-						$(SRC_DIR)exec/exec_pipeline.c	\
-
-UTILS_DIR		=		$(SRC_DIR)utils/tools.c \
-						$(SRC_DIR)utils/tools2.c \
+UTILS_DIR		=		$(SRC_DIR)utils/errors.c \
+						$(SRC_DIR)utils/utils.c \
+						$(SRC_DIR)utils/redirections.c \
+						$(SRC_DIR)utils/heredoc.c \
+						$(SRC_DIR)utils/utils2.c \
 
 MAIN			=		$(SRC_DIR)main.c
 # Concatenate all source files
-SRCS 				= $(BUILTIN_DIR) $(DATA_DIR) $(LEXER_DIR) $(PARSING_DIR) $(EXEC_DIR) $(UTILS_DIR) $(MAIN)
+SRCS 				= $(BUILTIN_DIR) $(DATA_DIR) $(LEXER_DIR) $(PARSING_DIR) $(EXEC_DIR) $(SIGNAL_DIR) $(UTILS_DIR) $(MAIN)
 
 # Apply the pattern substitution to each source file in SRC and produce a corresponding list of object files in the OBJ_DIR
 OBJ 				= $(patsubst $(SRC_DIR)%.c,$(OBJ_DIR)%.o,$(SRCS))

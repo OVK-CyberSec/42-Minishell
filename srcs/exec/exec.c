@@ -1,112 +1,63 @@
- #include "../../includes/minishell.h"
+#include "../../includes/minishell.h"
 
-bool	is_builtin(char *cmd)
-{
-	if (!cmd)
-		return (false);
-	if (!strcmp(cmd, "echo") || !strcmp(cmd, "cd") \
-	|| !strcmp(cmd, "pwd") || !strcmp(cmd, "export") \
-	|| !strcmp(cmd, "unset") || !strcmp(cmd, "env") \
-	|| !strcmp(cmd, "exit"))
-		return (true);
-	return (false);
-}
-
-void	exec_builtin(char **cmd, t_shell *shell)
-{
-	if (strcmp(cmd[0], "echo") == 0)
-		builtin_echo(cmd);
-	else if (strcmp(cmd[0], "cd") == 0)
-		builtin_cd(cmd, shell);
-	else if (strcmp(cmd[0], "env") == 0)
-	 	builtin_env(shell);
-	else if (strcmp(cmd[0], "pwd") == 0)
-	 	builtin_pwd(shell);
-	//  else if (strcmp(cmd[0], "export") == 0)
-	//   	builtin_export(cmd, shell);
-	else if (strcmp(cmd[0], "unset") == 0)
-	 	builtin_unset(cmd, shell);
-	// else if (strcmp(*cmd, "exit"))
-	// 	builtin_exit(env, shell);
-}
-
-// int	exec_native(t_cmd *cmd, t_shell *shell, char **env)
-// {
-// 	char	*path;
-
-// 	// s_cmd = ft_split(cmd->&args, ' ');
-// 	// if (!s_cmd || !s_cmd[0])
-// 	// 	return (0);
-// 	if (ft_strchr(cmd->args[0], '/'))
-// 		exec_absolute(cmd, env, shell);
-// 	path = get_path(cmd->args[0], env);
-// 	if (!path)
-// 	{
-// 		printf("minishell: command not found: %s", cmd->args[0]);
-// 		shell->last_exit = 127;
-// 		//ft_free_tab(s_cmd);
-// 		return (1);
-// 	}
-// 	execve(path, cmd->args, env);
-// 	perror("minishell");
-// 	// ft_free_tab(s_cmd);
-// 	free(path);
-// 	return (0);
-// }
-
-int	exec_native(char **cmd, t_shell *shell, char **env)
+void	exec_binary(t_cmd *cmd, t_data *data)
 {
 	char	*path;
+	char	**envp;
 
-	// s_cmd = ft_split(cmd->&args, ' ');
-	// if (!s_cmd || !s_cmd[0])
-	// 	return (0);
-	if (ft_strchr(cmd[0], '/'))
-		exec_absolute(cmd, env, shell);
-	path = get_path(cmd[0], env);
-	if (!path)
-	{
-		printf("minishell: command not found: %s\n", cmd[0]);
-		shell->last_exit = 127;
-		//ft_free_tab(s_cmd);
-		return (1);
-	}
-	if (execve(path, cmd, env) == -1)
-		exit(EXIT_FAILURE);
-	perror("minishell");
-	// ft_free_tab(s_cmd);
-	free(path);
-	return (0);
+	path = find_command_path(cmd->args[0], data->env);
+		if (!path)
+		{
+			print_error(cmd->args[0], "command not found");
+			exit(CMD_NOT_FOUND);
+		}
+	envp = env_to_array(data->env);
+	execve(path, cmd->args, envp);
+	exit(CMD_NOT_EXECUTABLE);
 }
 
-int	exec_cmd(char **cmd, t_shell *shell)
+void	setup_pipes(t_pipex *px)
 {
-	if (is_builtin(cmd[0]))
-		exec_builtin(cmd, shell);
-	else
-		exec_native(cmd, shell, shell->env);
-	return (0);
+	int	j;
+
+	if (px->i > 0)
+		dup2(px->pipes[px->i - 1][0], STDIN_FILENO);
+	if (px->i < px->n - 1)
+		dup2(px->pipes[px->i][1], STDOUT_FILENO);
+	j = 0;
+	while (j < px->n - 1)
+	{
+		close(px->pipes[j][0]);
+		close(px->pipes[j++][1]);
+	}
 }
 
-// int	exec_cmd(t_cmd *cmd, t_shell *shell)
-// {
-// 	if (is_builtin(cmd->args[0]))
-// 		exec_builtin(cmd->args, shell);
-// 	else
-// 		exec_native(cmd, shell, shell->env);
-// 	return 0;		
-// }
+void	execute_single_cmd(t_cmd *cmd, t_data *data)
+{
+	pid_t	pid;
+	int		status;
 
-// int	handle_error(int id, char *str, t_shell *shell)
-// {
-// 	if (id == 0)
-// 	{
-// 		printf("");
-// 		shell->last_exit = 127;
-// 	}
-// 	else if (id == 1)
-// 	{
-// 		printf("");
-// 		shell->last_exit = ;
-// 	}
-// }
+	if (!cmd->args || !cmd->args[0])
+		return ;
+	if (is_builtin(cmd->args[0]))
+		return ((void)(data->exit_status = execute_builtin(cmd, data)));
+	pid = fork();
+	if (pid == 0)
+	{
+		setup_redirections(cmd->redirs, data);
+		exec_binary(cmd, data);
+	}
+	waitpid(pid, &status, 0);
+	if (WIFEXITED(status))
+		data->exit_status = WEXITSTATUS(status);
+}
+
+void	execute_commands(t_cmd *cmds, t_data *data)
+{
+	if (!cmds)
+		return ;
+	if (!cmds->next)
+		execute_single_cmd(cmds, data);
+	else
+		execute_pipeline(cmds, data);
+}

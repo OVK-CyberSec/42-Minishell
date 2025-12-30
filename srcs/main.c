@@ -1,62 +1,75 @@
-
 #include "../includes/minishell.h"
 
-char **dup_env(char **envp)
+int	g_signal = 0;
+
+void	init_data(t_data *data, char **envp)
 {
-    int i;
-    char **env;
-
-    i = 0;
-    while (envp[i])
-        i++;
-
-    env = malloc(sizeof(char *) * (i + 1));
-    if (!env)
-        return NULL;
-
-    i = 0;
-    while (envp[i])
-    {
-        env[i] = ft_strdup(envp[i]);
-        i++;
-    }
-    env[i] = NULL;
-    return env;
+	data->env = init_env(envp);
+	data->cmds = NULL;
+	data->input = NULL;
+	data->exit_status = 0;
+	data->in_heredoc = 0;
 }
 
-int main(int ac, char **av, char **env)
+void	process_input(char *input, t_data *data)
 {
-    char *input;
-    char    **cmd;
-    t_shell shell;
-    t_token token;
+	t_token	*tokens;
 
-    (void)ac;
-    (void)av;
-    //init_shell(shell, env);
-    shell.env = dup_env(env);
-    while (1)
-    {
-        input = readline("minishell> ");
-        if (!input)
-            break;
-        input = lexer(input);
-        if (*input)
-            add_history(input);
-        cmd = ft_split(input, ' ');
-        if (!cmd || !cmd[0])
-        {
-            free(input);
-            free_tab(cmd);
-            continue;
-        }
-        //builtin_cd(cmd, &shell);
-        //exec_builtin(cmd, &shell);
-        if (exec_pipeline(&cmd, ac, &shell) == 0)
-            continue;
-        //exec_cmd(input->args, &shell);
-       // tokens = lexer(line);
-        free(input);
-    }
-    return (0);
+	if (!input || !*input)
+		return ;
+	add_history(input);
+	if (!check_quotes(input))
+	{
+		print_error("minishell", "unclosed quotes");
+		data->exit_status = 2;
+		return ;
+	}
+	tokens = lexer(input);
+	if (!tokens)
+		return ;
+	if (!check_syntax(tokens))
+	{
+		print_error("minishell", "syntax error");
+		data->exit_status = 2;
+		free_tokens(tokens);
+		return ;
+	}
+	expand_variables(tokens, data);
+	data->cmds = parser(tokens);
+	free_tokens(tokens);
+	if (data->cmds)
+	{
+		execute_commands(data->cmds, data);
+		free_commands(data->cmds);
+		data->cmds = NULL;
+	}
+}
+
+int	main(int argc, char **argv, char **envp)
+{
+	t_data	data;
+	char	*input;
+
+	(void)argc;
+	(void)argv;
+	init_data(&data, envp);
+	setup_signals();
+	while (1)
+	{
+		input = readline("minishell$ ");
+		if (!input)
+		{
+			printf("exit\n");
+			break ;
+		}
+		if (g_signal)
+		{
+			data.exit_status = 130;
+			g_signal = 0;
+		}
+		process_input(input, &data);
+		free(input);
+	}
+	cleanup_data(&data);
+	return (data.exit_status);
 }
