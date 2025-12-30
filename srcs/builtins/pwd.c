@@ -1,0 +1,14 @@
+#include "../../includes/minishell.h"
+
+int	builtin_pwd(void)
+{
+	char	cwd[1024];
+
+	if (getcwd(cwd, sizeof(cwd)))
+	{
+		printf("%s\n", cwd);
+		return (0);
+	}
+	print_error("pwd", strerror(errno));
+	return (1);
+}
