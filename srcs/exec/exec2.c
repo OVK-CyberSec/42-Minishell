@@ -13,13 +13,13 @@ static int	count_cmds(t_cmd *cmds)
 	return (count);
 }
 
-static void exec_child(t_cmd *cmd, t_data *data, t_pipex *px)
+static void	exec_child(t_cmd *cmd, t_data *data, t_pipex *px)
 {
-    setup_pipes(px);
-    setup_redirections(cmd->redirs, data);
-    if (is_builtin(cmd->args[0]))
-        exit(execute_builtin(cmd, data));
-    exec_binary(cmd, data);
+	setup_pipes(px);
+	setup_redirections(cmd->redirs, data);
+	if (is_builtin(cmd->args[0]))
+		exit(execute_builtin(cmd, data));
+	exec_binary(cmd, data);
 }
 
 static void	init_pipex(t_pipex *px, t_cmd *cmds)

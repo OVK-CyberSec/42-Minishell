@@ -22,35 +22,21 @@ int	check_quotes(char *input)
 	return (1);
 }
 
-int	check_syntax(t_token *tokens)
+int	check_syntax(t_token *t)
 {
-	t_token	*tmp;
+	t_token	*last;
 
-	if (!tokens)
+	if (!t || t->type == TOKEN_PIPE)
 		return (0);
-	tmp = tokens;
-	if (tmp->type == TOKEN_PIPE)
-		return (0);
-	while (tmp)
+	while (t)
 	{
-		if (tmp->type == TOKEN_PIPE)
-		{
-			if (!tmp->next || tmp->next->type == TOKEN_PIPE)
-				return (0);
-		}
-		if (tmp->type >= TOKEN_REDIR_IN && tmp->type <= TOKEN_HEREDOC)
-		{
-			if (!tmp->next || tmp->next->type != TOKEN_WORD)
-				return (0);
-		}
-		tmp = tmp->next;
+		if ((t->type == TOKEN_PIPE
+				&& (!t->next || t->next->type == TOKEN_PIPE))
+			|| (t->type >= TOKEN_REDIR_IN && t->type <= TOKEN_HEREDOC
+				&& (!t->next || t->next->type != TOKEN_WORD)))
+			return (0);
+		last = t;
+		t = t->next;
 	}
-	if (tokens->type == TOKEN_PIPE)
-		return (0);
-	tmp = tokens;
-	while (tmp->next)
-		tmp = tmp->next;
-	if (tmp->type == TOKEN_PIPE)
-		return (0);
-	return (1);
+	return (last->type != TOKEN_PIPE);
 }

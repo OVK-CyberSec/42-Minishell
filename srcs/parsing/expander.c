@@ -1,8 +1,12 @@
 #include "../../includes/minishell.h"
 
-static char	*expand_exit_status(int exit_status)
+static char	*join_and_free(char *s1, char *s2)
 {
-	return (ft_itoa(exit_status));
+	char	*res;
+
+	res = ft_strjoin(s1, s2);
+	free(s1);
+	return (res);
 }
 
 static char	*get_var_name(char *str, int *i)
@@ -23,16 +27,33 @@ static char	*get_var_name(char *str, int *i)
 	return (var_name);
 }
 
+static char	*handle_var(char *res, char *str, int *i, t_data *data)
+{
+	char	*name;
+	char	*value;
+
+	name = get_var_name(str, i);
+	if (!ft_strcmp(name, "?"))
+		value = expand_exit_status(data->exit_status);
+	else
+		value = get_env_value(data->env, name);
+	if (value)
+	{
+		res = join_and_free(res, value);
+		if (!ft_strcmp(name, "?"))
+			free(value);
+	}
+	free(name);
+	return (res);
+}
+
 static char	*expand_variable(char *str, t_data *data)
 {
-	char	*result;
-	char	*var_name;
-	char	*var_value;
-	char	*tmp;
+	char	*res;
 	int		i;
 	int		start;
 
-	result = ft_strdup("");
+	res = ft_strdup("");
 	i = 0;
 	while (str[i])
 	{
@@ -40,30 +61,11 @@ static char	*expand_variable(char *str, t_data *data)
 		while (str[i] && str[i] != '$')
 			i++;
 		if (i > start)
-		{
-			tmp = ft_substr(str, start, i - start);
-			result = ft_strjoin(result, tmp);
-			free(tmp);
-		}
+			res = join_and_free(res, ft_substr(str, start, i - start));
 		if (str[i] == '$')
-		{
-			var_name = get_var_name(str, &i);
-			if (!ft_strcmp(var_name, "?"))
-				var_value = expand_exit_status(data->exit_status);
-			else
-				var_value = get_env_value(data->env, var_name);
-			if (var_value)
-			{
-				tmp = result;
-				result = ft_strjoin(result, var_value);
-				free(tmp);
-				if (!ft_strcmp(var_name, "?"))
-					free(var_value);
-			}
-			free(var_name);
-		}
+			res = handle_var(res, str, &i, data);
 	}
-	return (result);
+	return (res);
 }
 
 void	expand_variables(t_token *tokens, t_data *data)

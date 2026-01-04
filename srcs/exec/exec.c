@@ -6,11 +6,11 @@ void	exec_binary(t_cmd *cmd, t_data *data)
 	char	**envp;
 
 	path = find_command_path(cmd->args[0], data->env);
-		if (!path)
-		{
-			print_error(cmd->args[0], "command not found");
-			exit(CMD_NOT_FOUND);
-		}
+	if (!path)
+	{
+		print_error(cmd->args[0], "command not found");
+		exit(CMD_NOT_FOUND);
+	}
 	envp = env_to_array(data->env);
 	execve(path, cmd->args, envp);
 	exit(CMD_NOT_EXECUTABLE);

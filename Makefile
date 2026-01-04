@@ -9,7 +9,7 @@ OBJ_DIR				= obj/
 
 # Compiler and CFlags
 CC					= cc
-CFLAGS				= -Wall  -Wextra -I
+CFLAGS				= -Wall -Werror -Wextra -I
 RM					= rm -f
 
 BUILTIN_DIR		=		$(SRC_DIR)builtins/env.c \
@@ -28,6 +28,8 @@ PARSING_DIR		=		$(SRC_DIR)parsing/expander.c \
 						$(SRC_DIR)parsing/lexer.c \
 						$(SRC_DIR)parsing/validation.c \
 						$(SRC_DIR)parsing/parser.c \
+						$(SRC_DIR)parsing/parser2.c \
+						$(SRC_DIR)parsing/tokenizer.c \
 
 SIGNAL_DIR		=		$(SRC_DIR)signals/signals.c \
 
@@ -40,11 +42,11 @@ UTILS_DIR		=		$(SRC_DIR)utils/errors.c \
 						$(SRC_DIR)utils/utils.c \
 						$(SRC_DIR)utils/redirections.c \
 						$(SRC_DIR)utils/heredoc.c \
-						$(SRC_DIR)utils/utils2.c \
 
 MAIN			=		$(SRC_DIR)main.c
 # Concatenate all source files
-SRCS 				= $(BUILTIN_DIR) $(DATA_DIR) $(LEXER_DIR) $(PARSING_DIR) $(EXEC_DIR) $(SIGNAL_DIR) $(UTILS_DIR) $(MAIN)
+SRCS 		=		 $(BUILTIN_DIR) $(DATA_DIR) $(PARSING_DIR) \
+       				 $(EXEC_DIR) $(SIGNAL_DIR) $(UTILS_DIR) $(MAIN)
 
 # Apply the pattern substitution to each source file in SRC and produce a corresponding list of object files in the OBJ_DIR
 OBJ 				= $(patsubst $(SRC_DIR)%.c,$(OBJ_DIR)%.o,$(SRCS))
@@ -70,9 +72,10 @@ clean:
 					@$(RM) -r $(OBJ_DIR)
 					@make clean -C ./Libft
 
-fclean: 			clean
-					@$(RM) $(NAME)
-					@$(RM) $(LIBFT)
+fclean: 	clean
+			@$(RM) $(NAME)
+			@make fclean -C ./Libft
+
 
 re: 				fclean all
 
