@@ -1,3 +1,15 @@
+/* ************************************************************************** */
+/*                                                                            */
+/*                                                        :::      ::::::::   */
+/*   minishell.h                                        :+:      :+:    :+:   */
+/*                                                    +:+ +:+         +:+     */
+/*   By: mohifdi <marvin@42.fr>                     +#+  +:+       +#+        */
+/*                                                +#+#+#+#+#+   +#+           */
+/*   Created: 2026/01/13 19:33:16 by mohifdi           #+#    #+#             */
+/*   Updated: 2026/01/13 19:33:17 by mohifdi          ###   ########.fr       */
+/*                                                                            */
+/* ************************************************************************** */
+
 #ifndef MINISHELL_H
 # define MINISHELL_H
 
@@ -76,9 +88,6 @@ typedef struct s_data
 	int				exit_status;
 	int				in_heredoc;
 }	t_data;
-
-/* Global variable for signal handling */
-extern int	g_signal;
 
 /* Parsing Functions */
 t_token		*lexer(char *input);
