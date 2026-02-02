@@ -18,7 +18,6 @@ void	exec_binary(t_cmd *cmd, t_data *data)
 		exit(CMD_NOT_EXECUTABLE);
 	}
 	execve(path, cmd->args, envp);
-	// Si execve échoue, on arrive ici
 	free(path);
 	free_split(envp);
 	exit(CMD_NOT_EXECUTABLE);
