@@ -1,3 +1,15 @@
+/* ************************************************************************** */
+/*                                                                            */
+/*                                                        :::      ::::::::   */
+/*   exec.c                                             :+:      :+:    :+:   */
+/*                                                    +:+ +:+         +:+     */
+/*   By: mohifdi <marvin@42.fr>                     +#+  +:+       +#+        */
+/*                                                +#+#+#+#+#+   +#+           */
+/*   Created: 2026/01/13 19:34:44 by mohifdi           #+#    #+#             */
+/*   Updated: 2026/01/13 19:34:48 by mohifdi          ###   ########.fr       */
+/*                                                                            */
+/* ************************************************************************** */
+
 #include "../../includes/minishell.h"
 
 void	exec_binary(t_cmd *cmd, t_data *data)
@@ -6,13 +18,21 @@ void	exec_binary(t_cmd *cmd, t_data *data)
 	char	**envp;
 
 	path = find_command_path(cmd->args[0], data->env);
-		if (!path)
-		{
-			print_error(cmd->args[0], "command not found");
-			exit(CMD_NOT_FOUND);
-		}
+	if (!path)
+	{
+		print_error(cmd->args[0], "command not found");
+		exit(CMD_NOT_FOUND);
+	}
 	envp = env_to_array(data->env);
+	if (!envp)
+	{
+		free(path);
+		exit(CMD_NOT_EXECUTABLE);
+	}
 	execve(path, cmd->args, envp);
+	// Si execve échoue, on arrive ici
+	free(path);
+	free_split(envp);
 	exit(CMD_NOT_EXECUTABLE);
 }
 
