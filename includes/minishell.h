@@ -1,3 +1,15 @@
+/* ************************************************************************** */
+/*                                                                            */
+/*                                                        :::      ::::::::   */
+/*   minishell.h                                        :+:      :+:    :+:   */
+/*                                                    +:+ +:+         +:+     */
+/*   By: mohifdi <marvin@42.fr>                     +#+  +:+       +#+        */
+/*                                                +#+#+#+#+#+   +#+           */
+/*   Created: 2026/01/13 19:33:16 by mohifdi           #+#    #+#             */
+/*   Updated: 2026/01/13 19:33:17 by mohifdi          ###   ########.fr       */
+/*                                                                            */
+/* ************************************************************************** */
+
 #ifndef MINISHELL_H
 # define MINISHELL_H
 
@@ -15,6 +27,7 @@
 # include <readline/history.h>
 # include <dirent.h>
 # include <termios.h>
+# include "../Libft/libft.h"
 
 /* Token Types */
 # define TOKEN_WORD 1
@@ -40,9 +53,9 @@ typedef struct s_token
 
 typedef struct s_redir
 {
-	int				type;
-	char			*file;
-	struct s_redir	*next;
+	int					type;
+	char				*file;
+	struct s_redir		*next;
 }	t_redir;
 
 typedef struct s_cmd
@@ -61,11 +74,11 @@ typedef struct s_env
 
 typedef struct s_pipex
 {
-    int     n;
-    int     i;
-    int     **pipes;
-    pid_t   *pids;
-}   t_pipex;
+	int		n;
+	int		i;
+	int		**pipes;
+	pid_t	*pids;
+}	t_pipex;
 
 typedef struct s_data
 {
@@ -76,14 +89,17 @@ typedef struct s_data
 	int				in_heredoc;
 }	t_data;
 
-/* Global variable for signal handling */
-extern int	g_signal;
+extern int g_signal;
 
 /* Parsing Functions */
 t_token		*lexer(char *input);
 t_cmd		*parser(t_token *tokens);
 void		expand_variables(t_token *tokens, t_data *data);
 char		*get_env_value(t_env *env, char *key);
+void		fill_cmd_args(t_cmd *cmd, t_token **tokens);
+t_token		*create_token(char *value, int type);
+void		add_token(t_token **tokens, t_token *new_token);
+int			get_token_type(char *str);
 
 /* Execution Functions */
 void		execute_commands(t_cmd *cmds, t_data *data);
@@ -135,20 +151,9 @@ void		free_split(char **split);
 void		cleanup_data(t_data *data);
 
 /* Utility Functions */
-char		**ft_split(char const *s, char c);
-char		*ft_strdup(const char *s);
-char		*ft_strjoin(char const *s1, char const *s2);
-int			ft_strcmp(const char *s1, const char *s2);
-int			ft_strncmp(const char *s1, const char *s2, size_t n);
-char		*ft_strchr(const char *s, int c);
-char		*ft_substr(char const *s, unsigned int start, size_t len);
-size_t		ft_strlen(const char *s);
 int			ft_isspace(int c);
-int			ft_isalnum(int c);
-void		*ft_calloc(size_t count, size_t size);
-char		*ft_itoa(int n);
-int			ft_isalpha(int c);
 int			is_valid_id(const char *s);
+char		*expand_exit_status(int exit_status);
 
 /* Error Handling */
 void		print_error(char *cmd, char *msg);
