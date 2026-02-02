@@ -89,6 +89,8 @@ typedef struct s_data
 	int				in_heredoc;
 }	t_data;
 
+extern int g_signal;
+
 /* Parsing Functions */
 t_token		*lexer(char *input);
 t_cmd		*parser(t_token *tokens);
