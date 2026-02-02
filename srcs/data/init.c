@@ -1,3 +1,15 @@
+/* ************************************************************************** */
+/*                                                                            */
+/*                                                        :::      ::::::::   */
+/*   init.c                                             :+:      :+:    :+:   */
+/*                                                    +:+ +:+         +:+     */
+/*   By: mohifdi <marvin@42.fr>                     +#+  +:+       +#+        */
+/*                                                +#+#+#+#+#+   +#+           */
+/*   Created: 2026/01/13 19:34:27 by mohifdi           #+#    #+#             */
+/*   Updated: 2026/01/13 19:34:28 by mohifdi          ###   ########.fr       */
+/*                                                                            */
+/* ************************************************************************** */
+
 #include "../../includes/minishell.h"
 
 static t_env	*create_env_var(char *key, char *value)
@@ -27,6 +39,7 @@ t_env	*init_env(char **envp)
 	t_env	*env;
 	t_env	*new_var;
 	char	*eq;
+	char	*key_tmp;
 	int		i;
 
 	env = NULL;
@@ -36,9 +49,9 @@ t_env	*init_env(char **envp)
 		eq = ft_strchr(envp[i], '=');
 		if (eq)
 		{
-			new_var = create_env_var(
-					ft_substr(envp[i], 0, eq - envp[i]),
-					ft_strdup(eq + 1));
+			key_tmp = ft_substr(envp[i], 0, eq - envp[i]);
+			new_var = create_env_var(key_tmp, eq + 1);
+			free(key_tmp);
 			if (!env)
 				env = new_var;
 			else
