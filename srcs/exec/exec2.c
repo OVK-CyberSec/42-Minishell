@@ -17,7 +17,6 @@ static void exec_child(t_cmd *cmd, t_data *data, t_pipex *px)
 {
     setup_pipes(px);
     setup_redirections(cmd->redirs, data);
-    // Protection ajoutée
     if (cmd->args && cmd->args[0] && is_builtin(cmd->args[0]))
         exit(execute_builtin(cmd, data));
     exec_binary(cmd, data);
