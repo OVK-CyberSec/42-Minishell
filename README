@@ -1,3 +1,79 @@
+# 🐚 Minishell
+
+> A simple Unix shell written in C — 42 School project  
+> Created by **mohifdi** & **mnakasto**
+
+---
+
+## 📌 Table of Contents
+
+- [Overview](#-overview)
+- [Features](#-features)
+- [Built-in Commands](#-built-in-commands)
+- [Project Structure](#-project-structure)
+- [Prerequisites](#-prerequisites)
+- [Installation](#-installation)
+- [Compilation](#-compilation)
+- [Usage](#-usage)
+- [Examples](#-examples)
+- [Signals Handling](#-signals-handling)
+- [Limitations](#-limitations)
+- [Resources](#-resources)
+- [Authors](#-authors)
+- [License](#-license)
+
+---
+
+## 📖 Overview
+
+**Minishell** is a minimalist implementation of a Unix shell inspired by **bash**.  
+The goal of this project is to understand and recreate the core behavior of a shell by handling:
+
+- Process creation
+- File descriptors
+- Pipes & redirections
+- Environment variables
+- Signals
+
+This project is part of the **42 School curriculum**.
+
+---
+
+## ✨ Features
+
+- 🔹 Command execution with `PATH` resolution
+- 🔹 Built-in commands
+- 🔹 Pipes (`|`)
+- 🔹 Redirections:
+  - Input `<`
+  - Output `>`
+  - Append `>>`
+  - Heredoc `<<`
+- 🔹 Environment variable expansion (`$VAR`, `$?`)
+- 🔹 Signal handling (`Ctrl+C`, `Ctrl+D`, `Ctrl+\`)
+- 🔹 Quote handling (`'`, `"`)
+- 🔹 Interactive prompt with history (GNU Readline)
+
+---
+
+## 🧰 Built-in Commands
+
+| Command  | Description |
+|--------|------------|
+| `echo` | Display a line of text |
+| `cd`   | Change directory |
+| `pwd`  | Print working directory |
+| `export` | Set environment variables |
+| `unset`  | Remove environment variables |
+| `env`  | Display environment |
+| `exit` | Exit the shell |
+
+---
+
+## 📁 Project Structure
+
+
+
 # Minishell
 This project has been created as part of the 42 curriculum by mohifdi and mnakasto
 
