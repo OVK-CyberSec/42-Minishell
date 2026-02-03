@@ -35,9 +35,6 @@ cd 42-Minishell
 ```bash
 # On Ubuntu/Debian
 sudo apt-get install libreadline-dev
-
-# On macOS
-brew install readline
 ```
 
 3. Compile the project:
