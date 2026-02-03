@@ -33,7 +33,6 @@ cd 42-Minishell
 
 2. Install the Readline library (if not already installed):
 ```bash
-# On Ubuntu/Debian
 sudo apt-get install libreadline-dev
 ```
 
