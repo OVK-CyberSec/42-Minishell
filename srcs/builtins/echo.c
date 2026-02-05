@@ -16,12 +16,17 @@ int	builtin_echo(char **args)
 {
 	int	i;
 	int	newline;
+	int	j;
 
 	newline = 1;
 	i = 1;
-	if (args[i] && !ft_strcmp(args[i], "-n"))
+	while (args[i] && args[i][0] == '-')
 	{
-		newline = 0;
+		j = 0;
+		while (args[i][j] && args[i][++j] == 'n')
+			newline = 0;
+		if (args[i][j])
+			break ;
 		i++;
 	}
 	while (args[i])

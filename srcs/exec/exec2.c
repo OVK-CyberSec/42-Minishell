@@ -1,3 +1,15 @@
+/* ************************************************************************** */
+/*                                                                            */
+/*                                                        :::      ::::::::   */
+/*   exec2.c                                            :+:      :+:    :+:   */
+/*                                                    +:+ +:+         +:+     */
+/*   By: mohifdi <marvin@42.fr>                     +#+  +:+       +#+        */
+/*                                                +#+#+#+#+#+   +#+           */
+/*   Created: 2026/02/04 10:33:48 by mohifdi           #+#    #+#             */
+/*   Updated: 2026/02/04 10:38:35 by mohifdi          ###   ########.fr       */
+/*                                                                            */
+/* ************************************************************************** */
+
 #include "../../includes/minishell.h"
 
 static int	count_cmds(t_cmd *cmds)
@@ -13,13 +25,13 @@ static int	count_cmds(t_cmd *cmds)
 	return (count);
 }
 
-static void exec_child(t_cmd *cmd, t_data *data, t_pipex *px)
+static void	exec_child(t_cmd *cmd, t_data *data, t_pipex *px)
 {
-    setup_pipes(px);
-    setup_redirections(cmd->redirs, data);
-    if (cmd->args && cmd->args[0] && is_builtin(cmd->args[0]))
-        exit(execute_builtin(cmd, data));
-    exec_binary(cmd, data);
+	setup_pipes(px);
+	setup_redirections(cmd->redirs, data);
+	if (cmd->args && cmd->args[0] && is_builtin(cmd->args[0]))
+		exit(execute_builtin(cmd, data));
+	exec_binary(cmd, data);
 }
 
 static void	init_pipex(t_pipex *px, t_cmd *cmds)
