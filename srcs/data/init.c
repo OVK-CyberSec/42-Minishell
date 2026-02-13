@@ -20,7 +20,11 @@ static t_env	*create_env_var(char *key, char *value)
 	if (!env)
 		return (NULL);
 	env->key = ft_strdup(key);
+	if (!(env->key))
+		return (NULL);
 	env->value = ft_strdup(value);
+	if (!(env->value))
+		return (NULL);
 	env->next = NULL;
 	return (env);
 }
@@ -43,20 +47,22 @@ t_env	*init_env(char **envp)
 	int		i;
 
 	env = NULL;
-	i = 0;
-	while (envp[i])
+	i = -1;
+	while (envp[++i])
 	{
 		eq = ft_strchr(envp[i], '=');
 		if (eq)
 		{
 			key_tmp = ft_substr(envp[i], 0, eq - envp[i]);
 			new_var = create_env_var(key_tmp, eq + 1);
+			if (!new_var)
+				return (NULL);
+			free(key_tmp);
 			if (!env)
 				env = new_var;
 			else
 				ft_env_last(env)->next = new_var;
 		}
-		i++;
 	}
 	return (env);
 }

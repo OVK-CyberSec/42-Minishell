@@ -89,7 +89,7 @@ typedef struct s_data
 	int				in_heredoc;
 }	t_data;
 
-extern int g_signal;
+extern int	g_signal;
 
 /* Parsing Functions */
 t_token		*lexer(char *input);
@@ -108,7 +108,9 @@ void		execute_pipeline(t_cmd *cmds, t_data *data);
 int			setup_redirections(t_redir *redirs, t_data *data);
 void		setup_pipes(t_pipex *px);
 void		exec_binary(t_cmd *cmd, t_data *data);
-
+int			count_cmds(t_cmd *cmds);
+void		wait_all_pids(t_pipex *px, int *status);
+void		close_all_pipes(t_pipex *px);
 /* Built-in Commands */
 int			is_builtin(char *cmd);
 int			execute_builtin(t_cmd *cmd, t_data *data);

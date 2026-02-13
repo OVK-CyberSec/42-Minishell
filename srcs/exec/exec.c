@@ -12,6 +12,19 @@
 
 #include "../../includes/minishell.h"
 
+int	count_cmds(t_cmd *cmds)
+{
+	int	count;
+
+	count = 0;
+	while (cmds)
+	{
+		count++;
+		cmds = cmds->next;
+	}
+	return (count);
+}
+
 void	exec_binary(t_cmd *cmd, t_data *data)
 {
 	char	*path;
@@ -51,6 +64,24 @@ void	setup_pipes(t_pipex *px)
 	}
 }
 
+static int	exec_builtin_parent(t_cmd *cmd, t_data *data)
+{
+	int	in;
+	int	out;
+	int	status;
+
+	in = dup(STDIN_FILENO);
+	out = dup(STDOUT_FILENO);
+	if (setup_redirections(cmd->redirs, data) != 0)
+		return (1);
+	status = execute_builtin(cmd, data);
+	dup2(in, STDIN_FILENO);
+	dup2(out, STDOUT_FILENO);
+	close(in);
+	close(out);
+	return (status);
+}
+
 void	execute_single_cmd(t_cmd *cmd, t_data *data)
 {
 	pid_t	pid;
@@ -59,7 +90,10 @@ void	execute_single_cmd(t_cmd *cmd, t_data *data)
 	if (!cmd->args || !cmd->args[0])
 		return ;
 	if (is_builtin(cmd->args[0]))
-		return ((void)(data->exit_status = execute_builtin(cmd, data)));
+	{
+		data->exit_status = exec_builtin_parent(cmd, data);
+		return ;
+	}
 	pid = fork();
 	if (pid == 0)
 	{
@@ -69,14 +103,4 @@ void	execute_single_cmd(t_cmd *cmd, t_data *data)
 	waitpid(pid, &status, 0);
 	if (WIFEXITED(status))
 		data->exit_status = WEXITSTATUS(status);
-}
-
-void	execute_commands(t_cmd *cmds, t_data *data)
-{
-	if (!cmds)
-		return ;
-	if (!cmds->next)
-		execute_single_cmd(cmds, data);
-	else
-		execute_pipeline(cmds, data);
 }
