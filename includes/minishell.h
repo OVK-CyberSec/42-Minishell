@@ -89,12 +89,12 @@ typedef struct s_data
 	int				in_heredoc;
 }	t_data;
 
-extern int g_signal;
+extern int	g_signal;
 
 /* Parsing Functions */
 t_token		*lexer(char *input);
 t_cmd		*parser(t_token *tokens);
-void		expand_variables(t_token *tokens, t_data *data);
+void		expand_variables(t_token **tokens, t_data *data);
 char		*get_env_value(t_env *env, char *key);
 void		fill_cmd_args(t_cmd *cmd, t_token **tokens);
 t_token		*create_token(char *value, int type);
@@ -108,13 +108,15 @@ void		execute_pipeline(t_cmd *cmds, t_data *data);
 int			setup_redirections(t_redir *redirs, t_data *data);
 void		setup_pipes(t_pipex *px);
 void		exec_binary(t_cmd *cmd, t_data *data);
-
+int			count_cmds(t_cmd *cmds);
+void		wait_all_pids(t_pipex *px, int *status);
+void		close_all_pipes(t_pipex *px);
 /* Built-in Commands */
 int			is_builtin(char *cmd);
 int			execute_builtin(t_cmd *cmd, t_data *data);
 int			builtin_echo(char **args);
 int			builtin_cd(char **args, t_data *data);
-int			builtin_pwd(void);
+int			builtin_pwd(t_data *data);
 int			builtin_export(char **args, t_data *data);
 int			builtin_unset(char **args, t_data *data);
 int			builtin_env(t_data *data);
@@ -154,6 +156,7 @@ void		cleanup_data(t_data *data);
 int			ft_isspace(int c);
 int			is_valid_id(const char *s);
 char		*expand_exit_status(int exit_status);
+int			env_key_exists(t_env **env, char *key);
 
 /* Error Handling */
 void		print_error(char *cmd, char *msg);

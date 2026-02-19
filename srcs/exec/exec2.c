@@ -5,33 +5,21 @@
 /*                                                    +:+ +:+         +:+     */
 /*   By: mohifdi <marvin@42.fr>                     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
-/*   Created: 2026/01/13 19:34:37 by mohifdi           #+#    #+#             */
-/*   Updated: 2026/01/13 19:34:38 by mohifdi          ###   ########.fr       */
+/*   Created: 2026/02/04 10:33:48 by mohifdi           #+#    #+#             */
+/*   Updated: 2026/02/04 10:38:35 by mohifdi          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "../../includes/minishell.h"
 
-static int	count_cmds(t_cmd *cmds)
+static void	exec_child(t_cmd *cmd, t_data *data, t_pipex *px)
 {
-	int	count;
-
-	count = 0;
-	while (cmds)
-	{
-		count++;
-		cmds = cmds->next;
-	}
-	return (count);
-}
-
-static void exec_child(t_cmd *cmd, t_data *data, t_pipex *px)
-{
-    setup_pipes(px);
-    setup_redirections(cmd->redirs, data);
-    if (cmd->args && cmd->args[0] && is_builtin(cmd->args[0]))
-        exit(execute_builtin(cmd, data));
-    exec_binary(cmd, data);
+	setup_pipes(px);
+	if (setup_redirections(cmd->redirs, data) != 0)
+		exit(1);
+	if (cmd->args && cmd->args[0] && is_builtin(cmd->args[0]))
+		exit(execute_builtin(cmd, data));
+	exec_binary(cmd, data);
 }
 
 static void	init_pipex(t_pipex *px, t_cmd *cmds)
@@ -83,7 +71,6 @@ void	execute_pipeline(t_cmd *cmds, t_data *data)
 {
 	t_pipex	px;
 	int		status;
-	int		j;
 
 	init_pipex(&px, cmds);
 	create_pipes(&px);
@@ -95,16 +82,8 @@ void	execute_pipeline(t_cmd *cmds, t_data *data)
 		cmds = cmds->next;
 		px.i++;
 	}
-	j = 0;
-	while (j < px.n - 1)
-	{
-		close(px.pipes[j][0]);
-		close(px.pipes[j][1]);
-		j++;
-	}
-	px.i = 0;
-	while (px.i < px.n)
-		waitpid(px.pids[px.i++], &status, 0);
+	close_all_pipes(&px);
+	wait_all_pids(&px, &status);
 	if (WIFEXITED(status))
 		data->exit_status = WEXITSTATUS(status);
 	cleanup_pipex(&px);

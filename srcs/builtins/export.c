@@ -1,3 +1,15 @@
+/* ************************************************************************** */
+/*                                                                            */
+/*                                                        :::      ::::::::   */
+/*   export.c                                           :+:      :+:    :+:   */
+/*                                                    +:+ +:+         +:+     */
+/*   By: mohifdi <marvin@42.fr>                     +#+  +:+       +#+        */
+/*                                                +#+#+#+#+#+   +#+           */
+/*   Created: 2026/01/13 19:33:57 by mohifdi           #+#    #+#             */
+/*   Updated: 2026/01/13 19:33:59 by mohifdi          ###   ########.fr       */
+/*                                                                            */
+/* ************************************************************************** */
+
 #include "../../includes/minishell.h"
 
 static void	print_export(t_env *env)
@@ -30,7 +42,8 @@ static void	add_export_var(char *arg, char *key, t_data *data)
 	eq = ft_strchr(arg, '=');
 	if (!eq)
 	{
-		add_env_var(&data->env, key, NULL);
+		if (!(env_key_exists(&data->env, arg)))
+			add_env_var(&data->env, key, NULL);
 		return ;
 	}
 	val = ft_strdup(eq + 1);
@@ -65,6 +78,11 @@ int	builtin_export(char **args, t_data *data)
 	ret = 0;
 	while (args[i])
 	{
+		if (args[i][0] == '\0')
+		{
+			i++;
+			continue ;
+		}
 		if (export_one_arg(args[i], data))
 			ret = 1;
 		i++;

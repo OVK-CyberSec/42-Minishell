@@ -5,12 +5,25 @@
 /*                                                    +:+ +:+         +:+     */
 /*   By: mohifdi <marvin@42.fr>                     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
-/*   Created: 2026/01/13 19:34:44 by mohifdi           #+#    #+#             */
-/*   Updated: 2026/01/13 19:34:48 by mohifdi          ###   ########.fr       */
+/*   Created: 2026/02/04 10:34:12 by mohifdi           #+#    #+#             */
+/*   Updated: 2026/02/04 10:34:13 by mohifdi          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "../../includes/minishell.h"
+
+int	count_cmds(t_cmd *cmds)
+{
+	int	count;
+
+	count = 0;
+	while (cmds)
+	{
+		count++;
+		cmds = cmds->next;
+	}
+	return (count);
+}
 
 void	exec_binary(t_cmd *cmd, t_data *data)
 {
@@ -20,6 +33,11 @@ void	exec_binary(t_cmd *cmd, t_data *data)
 	path = find_command_path(cmd->args[0], data->env);
 	if (!path)
 	{
+		if (ft_strchr(cmd->args[0], '/') && access(cmd->args[0], F_OK) == 0)
+		{
+			print_error(cmd->args[0], "Permission denied");
+			exit(CMD_NOT_EXECUTABLE);
+		}
 		print_error(cmd->args[0], "command not found");
 		exit(CMD_NOT_FOUND);
 	}
@@ -30,7 +48,6 @@ void	exec_binary(t_cmd *cmd, t_data *data)
 		exit(CMD_NOT_EXECUTABLE);
 	}
 	execve(path, cmd->args, envp);
-	// Si execve échoue, on arrive ici
 	free(path);
 	free_split(envp);
 	exit(CMD_NOT_EXECUTABLE);
@@ -52,6 +69,31 @@ void	setup_pipes(t_pipex *px)
 	}
 }
 
+static int	exec_builtin_parent(t_cmd *cmd, t_data *data)
+{
+	int	in;
+	int	out;
+	int	status;
+
+	in = dup(STDIN_FILENO);
+	out = dup(STDOUT_FILENO);
+	if (setup_redirections(cmd->redirs, data) != 0)
+	{
+		dup2(in, STDIN_FILENO);
+		dup2(out, STDOUT_FILENO);
+		close(in);
+		close(out);
+		return (1);
+	}
+	status = execute_builtin(cmd, data);
+	fflush(stdout);
+	dup2(in, STDIN_FILENO);
+	dup2(out, STDOUT_FILENO);
+	close(in);
+	close(out);
+	return (status);
+}
+
 void	execute_single_cmd(t_cmd *cmd, t_data *data)
 {
 	pid_t	pid;
@@ -60,24 +102,18 @@ void	execute_single_cmd(t_cmd *cmd, t_data *data)
 	if (!cmd->args || !cmd->args[0])
 		return ;
 	if (is_builtin(cmd->args[0]))
-		return ((void)(data->exit_status = execute_builtin(cmd, data)));
+	{
+		data->exit_status = exec_builtin_parent(cmd, data);
+		return ;
+	}
 	pid = fork();
 	if (pid == 0)
 	{
-		setup_redirections(cmd->redirs, data);
+		if (setup_redirections(cmd->redirs, data) != 0)
+			exit(1);
 		exec_binary(cmd, data);
 	}
 	waitpid(pid, &status, 0);
 	if (WIFEXITED(status))
 		data->exit_status = WEXITSTATUS(status);
-}
-
-void	execute_commands(t_cmd *cmds, t_data *data)
-{
-	if (!cmds)
-		return ;
-	if (!cmds->next)
-		execute_single_cmd(cmds, data);
-	else
-		execute_pipeline(cmds, data);
 }

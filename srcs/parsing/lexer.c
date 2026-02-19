@@ -1,74 +1,57 @@
+/* ************************************************************************** */
+/*                                                                            */
+/*                                                        :::      ::::::::   */
+/*   lexer.c                                            :+:      :+:    :+:   */
+/*                                                    +:+ +:+         +:+     */
+/*   By: mohifdi <marvin@42.fr>                     +#+  +:+       +#+        */
+/*                                                +#+#+#+#+#+   +#+           */
+/*   Created: 2026/01/13 19:35:08 by mohifdi           #+#    #+#             */
+/*   Updated: 2026/01/13 19:35:09 by mohifdi          ###   ########.fr       */
+/*                                                                            */
+/* ************************************************************************** */
+
 #include "../../includes/minishell.h"
 
-static t_token	*create_token(char *value, int type)
+static char	*handle_redir(char *input, int *i, char c)
 {
-	t_token	*token;
-
-	token = malloc(sizeof(t_token));
-	if (!token)
-		return (NULL);
-	token->value = ft_strdup(value);
-	token->type = type;
-	token->next = NULL;
-	return (token);
-}
-
-static void	add_token(t_token **tokens, t_token *new_token)
-{
-	t_token	*tmp;
-
-	if (!*tokens)
+	if (input[*i + 1] == c)
 	{
-		*tokens = new_token;
-		return ;
+		*i += 2;
+		if (c == '<')
+			return (ft_strdup("<<"));
+		return (ft_strdup(">>"));
 	}
-	tmp = *tokens;
-	while (tmp->next)
-		tmp = tmp->next;
-	tmp->next = new_token;
+	(*i)++;
+	if (c == '<')
+		return (ft_strdup("<"));
+	return (ft_strdup(">"));
 }
 
-static int	get_token_type(char *str)
+static void	skip_quote(char *input, int *i, char q)
 {
-	if (!ft_strcmp(str, "|"))
-		return (TOKEN_PIPE);
-	if (!ft_strcmp(str, "<"))
-		return (TOKEN_REDIR_IN);
-	if (!ft_strcmp(str, ">"))
-		return (TOKEN_REDIR_OUT);
-	if (!ft_strcmp(str, ">>"))
-		return (TOKEN_REDIR_APPEND);
-	if (!ft_strcmp(str, "<<"))
-		return (TOKEN_HEREDOC);
-	return (TOKEN_WORD);
-}
-
-static char	*extract_quoted_string(char *input, int *i, char quote)
-{
-	int		start;
-	char	*result;
-
-	start = ++(*i);
-	while (input[*i] && input[*i] != quote)
+	(*i)++;
+	while (input[*i] && input[*i] != q)
 		(*i)++;
-	result = ft_substr(input, start, *i - start);
-	if (input[*i] == quote)
+	if (input[*i] == q)
 		(*i)++;
-	return (result);
 }
 
-static char	*extract_word(char *input, int *i)
+static char	*build_word(char *input, int *i)
 {
-	int		start;
-	char	*result;
+	int	start;
 
 	start = *i;
-	while (input[*i] && !ft_isspace(input[*i]) && 
-		input[*i] != '|' && input[*i] != '<' && input[*i] != '>' &&
-		input[*i] != '\'' && input[*i] != '"')
-		(*i)++;
-	result = ft_substr(input, start, *i - start);
-	return (result);
+	while (input[*i] && !ft_isspace(input[*i])
+		&& input[*i] != '|' && input[*i] != '<' && input[*i] != '>')
+	{
+		if (input[*i] == '\'')
+			skip_quote(input, i, '\'');
+		else if (input[*i] == '"')
+			skip_quote(input, i, '"');
+		else
+			(*i)++;
+	}
+	return (ft_substr(input, start, *i - start));
 }
 
 static char	*get_next_token_value(char *input, int *i)
@@ -77,34 +60,11 @@ static char	*get_next_token_value(char *input, int *i)
 		(*i)++;
 	if (!input[*i])
 		return (NULL);
-	if (input[*i] == '\'' || input[*i] == '"')
-		return (extract_quoted_string(input, i, input[*i]));
 	if (input[*i] == '|')
-	{
-		(*i)++;
-		return (ft_strdup("|"));
-	}
-	if (input[*i] == '<')
-	{
-		if (input[*i + 1] == '<')
-		{
-			*i += 2;
-			return (ft_strdup("<<"));
-		}
-		(*i)++;
-		return (ft_strdup("<"));
-	}
-	if (input[*i] == '>')
-	{
-		if (input[*i + 1] == '>')
-		{
-			*i += 2;
-			return (ft_strdup(">>"));
-		}
-		(*i)++;
-		return (ft_strdup(">"));
-	}
-	return (extract_word(input, i));
+		return ((*i)++, ft_strdup("|"));
+	if (input[*i] == '<' || input[*i] == '>')
+		return (handle_redir(input, i, input[*i]));
+	return (build_word(input, i));
 }
 
 t_token	*lexer(char *input)

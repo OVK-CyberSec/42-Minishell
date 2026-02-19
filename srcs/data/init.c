@@ -5,8 +5,8 @@
 /*                                                    +:+ +:+         +:+     */
 /*   By: mohifdi <marvin@42.fr>                     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
-/*   Created: 2026/01/13 19:34:27 by mohifdi           #+#    #+#             */
-/*   Updated: 2026/01/13 19:34:28 by mohifdi          ###   ########.fr       */
+/*   Created: 2026/02/04 10:33:36 by mohifdi           #+#    #+#             */
+/*   Updated: 2026/02/04 10:33:38 by mohifdi          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -20,7 +20,15 @@ static t_env	*create_env_var(char *key, char *value)
 	if (!env)
 		return (NULL);
 	env->key = ft_strdup(key);
-	env->value = ft_strdup(value);
+	if (!(env->key))
+	{
+		free(env);
+		return (NULL);
+	}
+	if (value)
+		env->value = ft_strdup(value);
+	else
+		env->value = NULL;
 	env->next = NULL;
 	return (env);
 }
@@ -43,21 +51,22 @@ t_env	*init_env(char **envp)
 	int		i;
 
 	env = NULL;
-	i = 0;
-	while (envp[i])
+	i = -1;
+	while (envp[++i])
 	{
 		eq = ft_strchr(envp[i], '=');
 		if (eq)
 		{
 			key_tmp = ft_substr(envp[i], 0, eq - envp[i]);
 			new_var = create_env_var(key_tmp, eq + 1);
+			if (!new_var)
+				return (NULL);
 			free(key_tmp);
 			if (!env)
 				env = new_var;
 			else
 				ft_env_last(env)->next = new_var;
 		}
-		i++;
 	}
 	return (env);
 }
