@@ -12,9 +12,6 @@
 
 #include "../../includes/minishell.h"
 
-char	*str_append(char *s1, const char *s2);
-char	*expand_token(char *str, t_data *data);
-
 void	handle_unq(char **res, char *str, int *i)
 {
 	char	*part;

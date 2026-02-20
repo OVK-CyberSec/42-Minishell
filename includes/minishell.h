@@ -40,6 +40,7 @@
 /* Exit Codes */
 # define SUCCESS 0
 # define FAILURE 1
+# define SYNTAX_ERROR 2
 # define CMD_NOT_FOUND 127
 # define CMD_NOT_EXECUTABLE 126
 
@@ -100,6 +101,8 @@ void		fill_cmd_args(t_cmd *cmd, t_token **tokens);
 t_token		*create_token(char *value, int type);
 void		add_token(t_token **tokens, t_token *new_token);
 int			get_token_type(char *str);
+char		*expand_token(char *str, t_data *data);
+char		*str_append(char *s1, const char *s2);
 
 /* Execution Functions */
 void		execute_commands(t_cmd *cmds, t_data *data);
@@ -111,6 +114,7 @@ void		exec_binary(t_cmd *cmd, t_data *data);
 int			count_cmds(t_cmd *cmds);
 void		wait_all_pids(t_pipex *px, int *status);
 void		close_all_pipes(t_pipex *px);
+
 /* Built-in Commands */
 int			is_builtin(char *cmd);
 int			execute_builtin(t_cmd *cmd, t_data *data);

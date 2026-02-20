@@ -36,7 +36,7 @@ static int	handle_parsing(char *input, t_data *data, t_token **tokens)
 		return (0);
 	if (!check_syntax(*tokens))
 	{
-		print_error("minishell", "syntax error");
+		printf("syntax error near unexpected token\n");
 		data->exit_status = 2;
 		free_tokens(*tokens);
 		return (0);

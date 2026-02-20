@@ -19,7 +19,8 @@ int	builtin_env(t_data *data)
 	tmp = data->env;
 	while (tmp)
 	{
-		printf("%s=%s\n", tmp->key, tmp->value);
+		if(tmp->value != NULL)
+			printf("%s=%s\n", tmp->key, tmp->value);
 		tmp = tmp->next;
 	}
 	return (0);
